@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Envoi de messages SAMS</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 50px;
+    }
+    .container {
+        background-color: white;
+        padding: 25px 30px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        width: 100%;
+        max-width: 500px;
+    }
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+    }
+    textarea, select, button {
+        width: 100%;
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+    button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    .preview {
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 6px;
+        background: #fafafa;
+        margin-bottom: 15px;
+    }
+    .preview-title {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    .preview-message {
+        font-size: 14px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Envoyer un message SAMS</h2>
+
+    <label for="salon">Choisir le salon :</label>
+    <select id="salon">
+        <option value="citoyen">Annonce Citoyen</option>
+        <option value="interne">Annonce Interne</option>
+    </select>
+
+    <label for="typeMessage">Type de message :</label>
+    <select id="typeMessage">
+        <option value="sante">Santé</option>
+        <option value="info">Info</option>
+        <option value="alerte">Alerte</option>
+    </select>
+
+    <label for="message">Votre message :</label>
+    <textarea id="message" rows="5" placeholder="Écrivez votre message ici..."></textarea>
+
+    <div class="preview">
+        <div class="preview-title" id="previewTitle">Titre du message</div>
+        <div class="preview-message" id="previewMessage">Aperçu du message...</div>
+    </div>
+
+    <button onclick="envoyerMessage()">Envoyer</button>
+</div>
+
+<script>
+// Webhooks Discord
+const webhooks = {
+    citoyen: "https://discord.com/api/webhooks/1410945221138579486/uC7LzywJcQLctlCRSTv4pYXJ-YZvw3OI1fCGei_by1Z6U3pEnPXoqwEPgqy537-wAMAG",
+    interne: "https://discord.com/api/webhooks/1410945604431122432/IJt6hdE7DSDNB4OwrNgrit3TdLlC15bzgUDa7fxBdE2Q3oEa7MbtOeqNA8GW_uIjGHsg"
+};
+
+// Titres aléatoires pour salon citoyen
+const titresCitoyen = {
+    sante: ["💊 Pour votre santé !", "🩺 Restez protégés !", "💉 La prévention avant tout !"],
+    info: ["📢 Informations importantes", "ℹ️ Mise à jour", "📝 Nouvelle annonce"],
+    alerte: ["⚠️ Alerte importante", "🚨 Situation urgente", "❗ Attention"]
+};
+
+// Couleurs par type
+const couleurs = {
+    sante: 0x1abc9c, // vert
+    info: 0x3498db,  // bleu
+    alerte: 0xe74c3c // rouge
+};
+
+function updatePreview() {
+    const salon = document.getElementById("salon").value;
+    const typeMsg = document.getElementById("typeMessage").value;
+    const message = document.getElementById("message").value.trim();
+
+    let titre = "📢 Message";
+    if (salon === "citoyen") {
+        const listeTitres = titresCitoyen[typeMsg];
+        titre = listeTitres[Math.floor(Math.random() * listeTitres.length)];
+    }
+
+    document.getElementById("previewTitle").textContent = titre;
+
+    let previewMsg = message;
+    if (salon === "citoyen" && typeMsg === "sante") {
+        previewMsg += "\n\n💊 Pour votre santé";
+    }
+    document.getElementById("previewMessage").textContent = previewMsg;
+}
+
+document.getElementById("message").addEventListener("input", updatePreview);
+document.getElementById("salon").addEventListener("change", updatePreview);
+document.getElementById("typeMessage").addEventListener("change", updatePreview);
+
+function envoyerMessage() {
+    const salon = document.getElementById("salon").value;
+    const typeMsg = document.getElementById("typeMessage").value;
+    let message = document.getElementById("message").value.trim();
+
+    if (!message) {
+        alert("Veuillez écrire un message !");
+        return;
+    }
+
+    let titre = "📢 Message";
+    if (salon === "citoyen") {
+        const listeTitres = titresCitoyen[typeMsg];
+        titre = listeTitres[Math.floor(Math.random() * listeTitres.length)];
+        if (typeMsg === "sante") {
+            message += "\n\n💊 Pour votre santé";
+        }
+    }
+
+    const payload = {
+        content: salon === "citoyen" ? "@everyone" : "",
+        embeds: [{
+            title: titre,
+            description: message,
+            color: couleurs[typeMsg],
+            footer: {
+                text: `SAMS • ${new Date().toLocaleDateString()}`
+            },
+            timestamp: new Date()
+        }]
+    };
+
+    fetch(webhooks[salon], {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    })
+    .then(res => {
+        if (res.ok) {
+            alert("Message envoyé avec succès !");
+            document.getElementById("message").value = "";
+            updatePreview();
+        } else {
+            alert("Erreur lors de l'envoi du message.");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Impossible d'envoyer le message.");
+    });
+}
+
+// Initial preview
+updatePreview();
+</script>
+
+</body>
+</html>
