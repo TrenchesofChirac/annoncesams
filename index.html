@@ -86,7 +86,7 @@
     </select>
 
     <label for="message">Votre message :</label>
-    <textarea id="message" rows="5" placeholder="Écrivez votre message ici..."></textarea>
+    <textarea id="message" rows="6" placeholder="Écrivez votre message ici..."></textarea>
 
     <div class="preview">
         <div class="preview-title" id="previewTitle">Titre du message</div>
@@ -103,11 +103,11 @@ const webhooks = {
     interne: "https://discord.com/api/webhooks/1410945604431122432/IJt6hdE7DSDNB4OwrNgrit3TdLlC15bzgUDa7fxBdE2Q3oEa7MbtOeqNA8GW_uIjGHsg"
 };
 
-// Titres aléatoires pour salon citoyen
+// Titres aléatoires pour Citoyen
 const titresCitoyen = {
-    sante: ["💊 Pour votre santé !", "🩺 Restez protégés !", "💉 La prévention avant tout !"],
-    info: ["📢 Informations importantes", "ℹ️ Mise à jour", "📝 Nouvelle annonce"],
-    alerte: ["⚠️ Alerte importante", "🚨 Situation urgente", "❗ Attention"]
+    sante: ["💊 Pour votre santé !"],
+    info: ["📢 Informations importantes"],
+    alerte: ["⚠️ Alerte importante"]
 };
 
 // Couleurs par type
@@ -116,6 +116,9 @@ const couleurs = {
     info: 0x3498db,  // bleu
     alerte: 0xe74c3c // rouge
 };
+
+// URL de la bannière à la fin
+const banniereURL = "https://crowbots.shop/image/FNF2V.1408838853455773716.jpg";
 
 function updatePreview() {
     const salon = document.getElementById("salon").value;
@@ -169,7 +172,8 @@ function envoyerMessage() {
             footer: {
                 text: `SAMS • ${new Date().toLocaleDateString()}`
             },
-            timestamp: new Date()
+            timestamp: new Date(),
+            image: { url: banniereURL }
         }]
     };
 
